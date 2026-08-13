@@ -38,6 +38,7 @@ services:
       - ./templates:/app/templates
       - ./seed:/app/seed
       - reports_output:/app/output
+      - ./docs/images:/app/docs/images:ro
 
   n8n:
     image: n8nio/n8n:latest

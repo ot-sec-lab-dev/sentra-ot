@@ -2,139 +2,1220 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Sentra OS — {{ cliente_nombre }}</title>
+<title>Sentra OT - {{ cliente_nombre }}</title>
+
 <style>
+
+    /* ============================================================
+       CONFIGURACIÓN DE PÁGINA
+       ============================================================ */
+
     @page {
         size: A4;
-        margin: 2.2cm 1.8cm;
-        @bottom-center {
-            content: "Sentra OS · OT Assessment Engine · Página " counter(page) " de " counter(pages);
-            font-size: 8px;
-            color: #999;
+        margin: 1.15cm 1.25cm 1.45cm 1.25cm;
+
+        @bottom-left {
+            content: "SENTRA OT · CONFIDENTIAL";
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 7px;
+            color: #89939b;
+        }
+
+        @bottom-right {
+            content: "Página " counter(page) " de " counter(pages);
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 7px;
+            color: #89939b;
         }
     }
-    body { font-family: 'Helvetica', 'Arial', sans-serif; color: #1c1c1c; font-size: 11.5px; line-height: 1.55; }
-    .brand { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #0e3b5c; font-weight: bold; }
-    .header { display: flex; justify-content: space-between; border-bottom: 3px solid #0e3b5c; padding-bottom: 14px; margin-bottom: 26px; }
-    .header h1 { font-size: 21px; color: #0e3b5c; margin: 4px 0 0 0; }
-    .header .sub { color: #555; font-size: 12px; }
-    .header .meta { text-align: right; font-size: 10.5px; color: #666; }
 
-    .score-box { display: table; width: 100%; padding: 20px; border-radius: 8px; margin-bottom: 20px;
-        background: #f5f7f9; border-left: 7px solid {{ '#b02a2a' if nivel == 'crítico' else '#c9720e' if nivel == 'alto' else '#b58900' if nivel == 'medio' else '#1f8a4c' }}; }
-    .score-value { display: table-cell; vertical-align: middle; white-space: nowrap; width: 1%;
-        padding-right: 22px; font-size: 44px; font-weight: bold; color: #0e3b5c; }
-    .score-text { display: table-cell; vertical-align: middle; }
-    .score-nivel { font-size: 15px; text-transform: uppercase; font-weight: bold;
-        color: {{ '#b02a2a' if nivel == 'crítico' else '#c9720e' if nivel == 'alto' else '#b58900' if nivel == 'medio' else '#1f8a4c' }}; }
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 10px;
+        line-height: 1.4;
+        color: #20282e;
+        background: #ffffff;
+    }
 
-    .desglose { display: flex; gap: 14px; margin-bottom: 24px; }
-    .desglose .chip { background: #eef2f5; border-radius: 6px; padding: 8px 14px; font-size: 10.5px; }
-    .desglose .chip b { color: #0e3b5c; font-size: 13px; display: block; }
+    * {
+        box-sizing: border-box;
+    }
 
-    h2.section { font-size: 14px; color: #0e3b5c; border-bottom: 1px solid #d8dde1; padding-bottom: 6px; margin-top: 30px; }
-    .resumen-ejecutivo { text-align: justify; color: #333; }
+    .page-break {
+        page-break-before: always;
+    }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid #e4e7ea; font-size: 10px; vertical-align: top; }
-    th { background: #0e3b5c; color: white; font-weight: normal; }
-    .crit-alta { color: #b02a2a; font-weight: bold; }
-    .crit-media { color: #b58900; font-weight: bold; }
-    .crit-baja { color: #1f8a4c; }
+    .avoid-break {
+        page-break-inside: avoid;
+    }
 
-    .fase-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; color: white; }
-    .fase-quick { background: #1f8a4c; }
-    .fase-medio { background: #c9720e; }
-    .fase-largo { background: #555; }
+    .muted {
+        color: #78838b;
+    }
 
-    .footer-note { margin-top: 26px; font-size: 8.5px; color: #999; }
+    /* ============================================================
+       PORTADA
+       ============================================================ */
+
+    .cover {
+        min-height: 24.4cm;
+        position: relative;
+    }
+
+    .cover-top-line {
+        width: 100%;
+        height: 5px;
+        background: #0e3b5c;
+        margin-bottom: 24px;
+    }
+
+    .cover-logo {
+        width: 210px;
+        height: auto;
+        display: block;
+        margin-bottom: 28px;
+    }
+
+    .cover-kicker {
+        font-size: 8px;
+        font-weight: bold;
+        letter-spacing: 2.4px;
+        text-transform: uppercase;
+        color: #0e3b5c;
+        margin-bottom: 10px;
+    }
+
+    .cover-title {
+        margin: 0;
+        padding: 0;
+        font-size: 28px;
+        line-height: 1.08;
+        font-weight: bold;
+        color: #0e3b5c;
+    }
+
+    .cover-subtitle {
+        margin-top: 12px;
+        max-width: 16cm;
+        font-size: 10.5px;
+        line-height: 1.5;
+        color: #59656e;
+    }
+
+    .cover-rule {
+        width: 65px;
+        height: 4px;
+        background: #0e3b5c;
+        margin: 20px 0 23px 0;
+    }
+
+    .cover-client-label {
+        font-size: 7px;
+        letter-spacing: 1.6px;
+        text-transform: uppercase;
+        color: #89939b;
+        margin-bottom: 5px;
+    }
+
+    .cover-client {
+        font-size: 19px;
+        line-height: 1.2;
+        font-weight: bold;
+        color: #20282e;
+        margin-bottom: 5px;
+    }
+
+    .cover-assessment {
+        font-size: 10px;
+        color: #59656e;
+    }
+
+    /* ============================================================
+       METADATOS DE PORTADA
+       ============================================================ */
+
+    /*
+       Se utiliza una tabla fija para evitar los solapamientos
+       que pueden producirse con inline-block en WeasyPrint.
+    */
+
+    .cover-meta {
+        width: 100%;
+        margin-top: 28px;
+        padding: 13px 0;
+        border-top: 1px solid #dce2e6;
+        border-bottom: 1px solid #dce2e6;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    .cover-meta-cell {
+        width: 33.333%;
+        padding: 0 12px;
+        vertical-align: top;
+        border: 0;
+    }
+
+    .cover-meta-cell:first-child {
+        padding-left: 0;
+    }
+
+    .cover-meta-cell:last-child {
+        padding-right: 0;
+    }
+
+    .cover-meta-cell + .cover-meta-cell {
+        border-left: 1px solid #e0e5e8;
+    }
+
+    .cover-meta-label {
+        font-size: 6.8px;
+        line-height: 1.25;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #89939b;
+        margin-bottom: 5px;
+        white-space: normal;
+    }
+
+    .cover-meta-value {
+        font-size: 9px;
+        line-height: 1.35;
+        font-weight: bold;
+        color: #303a41;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: normal;
+    }
+
+    /*
+       Ya no se posiciona de forma absoluta.
+       Esto evita que pueda solaparse con los metadatos
+       cuando el contenido de la portada crece.
+    */
+
+    .cover-confidential {
+        margin-top: 22px;
+        font-size: 7px;
+        line-height: 1.3;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+        color: #89939b;
+    }
+
+    /* ============================================================
+       CABECERA DE SECCIÓN
+       ============================================================ */
+
+    .section-header {
+        margin: 0 0 10px 0;
+        padding: 0 0 7px 0;
+        border-bottom: 2px solid #dbe2e6;
+    }
+
+    .section-number {
+        margin-bottom: 3px;
+        font-size: 7px;
+        line-height: 1.2;
+        font-weight: bold;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        color: #89939b;
+    }
+
+    .section-title {
+        margin: 0;
+        padding: 0;
+        font-size: 17px;
+        line-height: 1.2;
+        font-weight: bold;
+        color: #0e3b5c;
+    }
+
+    .section-description {
+        margin-top: 4px;
+        font-size: 8.5px;
+        line-height: 1.35;
+        color: #6d7880;
+    }
+
+    /* ============================================================
+       SNAPSHOT
+       ============================================================ */
+
+    .snapshot-grid {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 5px;
+        margin: -5px 0 11px -5px;
+    }
+
+    .snapshot-card {
+        width: 25%;
+        padding: 9px;
+        vertical-align: top;
+        background: #f4f7f9;
+        border: 1px solid #dce3e7;
+    }
+
+    .snapshot-label {
+        margin-bottom: 4px;
+        font-size: 6.8px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #89939b;
+    }
+
+    .snapshot-value {
+        font-size: 16px;
+        line-height: 1.1;
+        font-weight: bold;
+        color: #0e3b5c;
+    }
+
+    .snapshot-sub {
+        margin-top: 3px;
+        font-size: 7.3px;
+        color: #68747c;
+    }
+
+    /* ============================================================
+       RISK HERO
+       ============================================================ */
+
+    .risk-hero {
+        width: 100%;
+        margin-bottom: 13px;
+        border: 1px solid #d7e0e5;
+        border-left: 7px solid {{
+            '#b02a2a' if nivel == 'crítico'
+            else '#c9720e' if nivel == 'alto'
+            else '#b58900' if nivel == 'medio'
+            else '#1f8a4c'
+        }};
+        background: #f5f7f9;
+    }
+
+    .risk-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .risk-score-cell {
+        width: 25%;
+        padding: 13px 15px;
+        vertical-align: middle;
+        border-right: 1px solid #dce3e7;
+    }
+
+    .risk-score-label {
+        margin-bottom: 4px;
+        font-size: 6.8px;
+        letter-spacing: 1.1px;
+        text-transform: uppercase;
+        color: #89939b;
+    }
+
+    .risk-score {
+        font-size: 36px;
+        line-height: 1;
+        font-weight: bold;
+        color: #0e3b5c;
+    }
+
+    .risk-score-unit {
+        margin-top: 4px;
+        font-size: 7px;
+        color: #89939b;
+    }
+
+    .risk-level-cell {
+        padding: 13px 16px;
+        vertical-align: middle;
+    }
+
+    .risk-level {
+        margin-bottom: 5px;
+        font-size: 15px;
+        line-height: 1.1;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: {{
+            '#b02a2a' if nivel == 'crítico'
+            else '#c9720e' if nivel == 'alto'
+            else '#b58900' if nivel == 'medio'
+            else '#1f8a4c'
+        }};
+    }
+
+    .risk-description {
+        font-size: 8.5px;
+        line-height: 1.4;
+        color: #536069;
+    }
+
+    /* ============================================================
+       FRAMEWORK
+       ============================================================ */
+
+    .framework-grid {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 5px;
+        margin: -5px 0 14px -5px;
+    }
+
+    .framework-card {
+        padding: 9px;
+        vertical-align: top;
+        border: 1px solid #d9e1e5;
+        border-top: 3px solid #0e3b5c;
+        background: #ffffff;
+    }
+
+    .framework-value {
+        font-size: 18px;
+        line-height: 1;
+        font-weight: bold;
+        color: #0e3b5c;
+    }
+
+    .framework-name {
+        margin-top: 4px;
+        font-size: 8px;
+        line-height: 1.3;
+        color: #68747c;
+    }
+
+    /* ============================================================
+       RESUMEN EJECUTIVO
+       ============================================================ */
+
+    .summary-box {
+        margin-bottom: 14px;
+        padding: 9px 12px;
+        border-left: 4px solid #0e3b5c;
+        background: #f6f8f9;
+    }
+
+    .summary-box p {
+        margin: 0 0 6px 0;
+        font-size: 8.8px;
+        line-height: 1.45;
+        color: #343e45;
+        text-align: justify;
+    }
+
+    .summary-box p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* ============================================================
+       TABLAS DE DATOS
+       ============================================================ */
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 5px 0 13px 0;
+        table-layout: auto;
+    }
+
+    .data-table thead {
+        display: table-header-group;
+    }
+
+    .data-table tr {
+        page-break-inside: avoid;
+    }
+
+    .data-table th {
+        padding: 6px 6px;
+        background: #0e3b5c;
+        color: #ffffff;
+        font-size: 7px;
+        line-height: 1.2;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.35px;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .data-table td {
+        padding: 6px 6px;
+        border-bottom: 1px solid #e1e6e9;
+        font-size: 8.2px;
+        line-height: 1.35;
+        color: #303a41;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .data-table tbody tr:nth-child(even) td {
+        background: #fafbfc;
+    }
+
+    .control-code {
+        font-size: 8.5px;
+        font-weight: bold;
+        color: #0e3b5c;
+    }
+
+    .control-name {
+        margin-top: 2px;
+        font-size: 7.8px;
+        line-height: 1.3;
+        color: #4c575f;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 8px;
+        background: #eef2f5;
+        color: #4d5961;
+        font-size: 7px;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    .crit-alta {
+        color: #b02a2a;
+        font-weight: bold;
+    }
+
+    .crit-media {
+        color: #b58900;
+        font-weight: bold;
+    }
+
+    .crit-baja {
+        color: #1f8a4c;
+        font-weight: bold;
+    }
+
+    /* ============================================================
+       ROADMAP
+       ============================================================ */
+
+    .roadmap-intro {
+        margin-bottom: 9px;
+        padding: 9px 12px;
+        border-left: 4px solid #0e3b5c;
+        background: #f6f8f9;
+        font-size: 8.8px;
+        line-height: 1.4;
+        color: #536069;
+    }
+
+    .roadmap-table {
+        margin-top: 8px;
+        margin-bottom: 14px;
+    }
+
+    .roadmap-table th {
+        padding: 8px 7px;
+        font-size: 7.2px;
+    }
+
+    .roadmap-table td {
+        padding: 9px 7px;
+        font-size: 9px;
+        line-height: 1.45;
+    }
+
+    .roadmap-table td:nth-child(3) {
+        font-size: 9.4px;
+        line-height: 1.5;
+    }
+
+    .phase-badge {
+        display: inline-block;
+        padding: 3px 7px;
+        border-radius: 9px;
+        color: #ffffff;
+        font-size: 7px;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    .phase-quick {
+        background: #1f8a4c;
+    }
+
+    .phase-medium {
+        background: #c9720e;
+    }
+
+    .phase-long {
+        background: #59636b;
+    }
+
+    .priority-number {
+        font-size: 10px;
+        font-weight: bold;
+        color: #0e3b5c;
+    }
+
+    /* ============================================================
+       EMPTY STATE
+       ============================================================ */
+
+    .empty-state {
+        padding: 10px;
+        border: 1px solid #dfe5e8;
+        background: #f7f9fa;
+        font-size: 8.5px;
+        color: #747e85;
+    }
+
+    /* ============================================================
+       FINAL NOTE
+       ============================================================ */
+
+    .final-note {
+        margin-top: 14px;
+        padding-top: 8px;
+        border-top: 1px solid #dfe4e7;
+        font-size: 7.2px;
+        line-height: 1.35;
+        color: #89939b;
+    }
+
 </style>
 </head>
+
 <body>
 
-<div class="header">
-    <div>
-        <div class="brand">Sentra OS · OT Assessment Engine</div>
-        <h1>Informe de evaluación de riesgo OT/IoMT</h1>
-        <div class="sub">{{ cliente_nombre }}{% if sector %} · {{ sector }}{% endif %} — {{ assessment_nombre }}</div>
+<!-- ============================================================
+     PORTADA
+     ============================================================ -->
+
+<div class="cover">
+
+    <div class="cover-top-line"></div>
+
+    <img
+        src="docs/images/sentra-ot-logo.png"
+        class="cover-logo"
+        alt="Sentra OT"
+    >
+
+    <div class="cover-kicker">
+        OT Cybersecurity Assessment
     </div>
-    <div class="meta">
-        Generado: {{ fecha }}<br>
-        {% if alcance %}Alcance: {{ alcance }}{% endif %}
+
+    <h1 class="cover-title">
+        Informe de evaluación<br>
+        de riesgo OT/IoMT
+    </h1>
+
+    <div class="cover-subtitle">
+        Evaluación estructurada de exposición, controles de seguridad,
+        riesgo operativo y prioridades de remediación.
     </div>
+
+    <div class="cover-rule"></div>
+
+    <div class="cover-client-label">
+        Organización evaluada
+    </div>
+
+    <div class="cover-client">
+        {{ cliente_nombre }}
+    </div>
+
+    <div class="cover-assessment">
+
+        {% if sector %}
+            {{ sector }}
+        {% endif %}
+
+        {% if sector and assessment_nombre %}
+            ·
+        {% endif %}
+
+        {% if assessment_nombre %}
+            {{ assessment_nombre }}
+        {% endif %}
+
+    </div>
+
+
+    <!-- ========================================================
+         METADATOS
+         ======================================================== -->
+
+    <table class="cover-meta">
+
+        <tr>
+
+            <td class="cover-meta-cell">
+
+                <div class="cover-meta-label">
+                    Fecha de generación
+                </div>
+
+                <div class="cover-meta-value">
+                    {{ fecha }}
+                </div>
+
+            </td>
+
+
+            <td class="cover-meta-cell">
+
+                <div class="cover-meta-label">
+                    Alcance
+                </div>
+
+                <div class="cover-meta-value">
+                    {{ alcance or 'Assessment OT/IoMT' }}
+                </div>
+
+            </td>
+
+
+            <td class="cover-meta-cell">
+
+                <div class="cover-meta-label">
+                    Plataforma
+                </div>
+
+                <div class="cover-meta-value">
+                    Sentra OS
+                </div>
+
+            </td>
+
+        </tr>
+
+    </table>
+
+
+    <div class="cover-confidential">
+        Sentra OT · Confidential Security Assessment
+    </div>
+
 </div>
 
-<div class="score-box">
-    <div class="score-value">{{ score }}</div>
-    <div class="score-text">
-        <div class="score-nivel">Riesgo: {{ nivel }}</div>
-        <div>Score global ponderado por criticidad de negocio y grado de implantación de controles.</div>
+
+<!-- ============================================================
+     EXECUTIVE OVERVIEW
+     ============================================================ -->
+
+<div class="page-break"></div>
+
+<div class="section-header">
+
+    <div class="section-number">
+        01 · Executive Overview
     </div>
+
+    <h2 class="section-title">
+        Executive Snapshot
+    </h2>
+
+    <div class="section-description">
+        Visión consolidada del estado de riesgo identificado durante
+        el assessment.
+    </div>
+
 </div>
+
+
+<!-- ============================================================
+     SNAPSHOT CARDS
+     ============================================================ -->
+
+<table class="snapshot-grid">
+
+    <tr>
+
+        <td class="snapshot-card">
+
+            <div class="snapshot-label">
+                Risk Score
+            </div>
+
+            <div class="snapshot-value">
+                {{ score }}
+            </div>
+
+            <div class="snapshot-sub">
+                Score global
+            </div>
+
+        </td>
+
+        <td class="snapshot-card">
+
+            <div class="snapshot-label">
+                Nivel de riesgo
+            </div>
+
+            <div class="snapshot-value">
+                {{ nivel }}
+            </div>
+
+            <div class="snapshot-sub">
+                Clasificación global
+            </div>
+
+        </td>
+
+        <td class="snapshot-card">
+
+            <div class="snapshot-label">
+                Hallazgos
+            </div>
+
+            <div class="snapshot-value">
+                {{ hallazgos|length }}
+            </div>
+
+            <div class="snapshot-sub">
+                Controles evaluados
+            </div>
+
+        </td>
+
+        <td class="snapshot-card">
+
+            <div class="snapshot-label">
+                Roadmap
+            </div>
+
+            <div class="snapshot-value">
+                {{ roadmap|length }}
+            </div>
+
+            <div class="snapshot-sub">
+                Acciones priorizadas
+            </div>
+
+        </td>
+
+    </tr>
+
+</table>
+
+
+<!-- ============================================================
+     GLOBAL RISK
+     ============================================================ -->
+
+<div class="risk-hero avoid-break">
+
+    <table class="risk-table">
+
+        <tr>
+
+            <td class="risk-score-cell">
+
+                <div class="risk-score-label">
+                    Global Risk Score
+                </div>
+
+                <div class="risk-score">
+                    {{ score }}
+                </div>
+
+                <div class="risk-score-unit">
+                    Evaluación ponderada
+                </div>
+
+            </td>
+
+            <td class="risk-level-cell">
+
+                <div class="risk-level">
+                    Riesgo {{ nivel }}
+                </div>
+
+                <div class="risk-description">
+                    Score global ponderado por criticidad de negocio
+                    y grado de implantación de controles.
+                </div>
+
+            </td>
+
+        </tr>
+
+    </table>
+
+</div>
+
+
+<!-- ============================================================
+     FRAMEWORK ANALYSIS
+     ============================================================ -->
 
 {% if desglose %}
-<div class="desglose">
-    {% for framework, valor in desglose.items() %}
-    <div class="chip"><b>{{ valor }}</b>{{ framework }}</div>
-    {% endfor %}
+
+<div class="section-header">
+
+    <div class="section-number">
+        01.1 · Framework Analysis
+    </div>
+
+    <h2 class="section-title">
+        Análisis por framework
+    </h2>
+
 </div>
+
+<table class="framework-grid">
+
+    <tr>
+
+        {% for framework, valor in desglose.items() %}
+
+        <td class="framework-card">
+
+            <div class="framework-value">
+                {{ valor }}
+            </div>
+
+            <div class="framework-name">
+                {{ framework }}
+            </div>
+
+        </td>
+
+        {% endfor %}
+
+    </tr>
+
+</table>
+
 {% endif %}
+
+
+<!-- ============================================================
+     EXECUTIVE SUMMARY
+     ============================================================ -->
 
 {% if resumen_ejecutivo %}
-<h2 class="section">Resumen ejecutivo</h2>
-<div class="resumen-ejecutivo">
-    {% for parrafo in resumen_ejecutivo.split('\n') if parrafo.strip() %}
-    <p>{{ parrafo }}</p>
-    {% endfor %}
+
+<div class="section-header">
+
+    <div class="section-number">
+        01.2 · Executive Assessment
+    </div>
+
+    <h2 class="section-title">
+        Resumen ejecutivo
+    </h2>
+
 </div>
+
+<div class="summary-box">
+
+    {% for parrafo in resumen_ejecutivo.split('\n') if parrafo.strip() %}
+
+    <p>
+        {{ parrafo }}
+    </p>
+
+    {% endfor %}
+
+</div>
+
 {% endif %}
 
-<h2 class="section">Hallazgos por control</h2>
-<table>
+
+<!-- ============================================================
+     FINDINGS
+     ============================================================ -->
+
+<div class="page-break"></div>
+
+<div class="section-header">
+
+    <div class="section-number">
+        02 · Security Findings
+    </div>
+
+    <h2 class="section-title">
+        Hallazgos por control
+    </h2>
+
+    <div class="section-description">
+        Detalle de los controles evaluados, su estado, criticidad,
+        impacto y oportunidades de mejora inmediata.
+    </div>
+
+</div>
+
+{% if hallazgos %}
+
+<table class="data-table">
+
     <thead>
-        <tr><th>Control</th><th>Estado</th><th>Crit.</th><th>Impacto de negocio</th><th>Quick win</th></tr>
-    </thead>
-    <tbody>
-        {% for h in hallazgos %}
+
         <tr>
-            <td><b>{{ h.codigo }}</b><br>{{ h.nombre }}</td>
-            <td>{{ h.estado }}</td>
-            <td class="{{ 'crit-alta' if h.criticidad >= 7 else 'crit-media' if h.criticidad >= 4 else 'crit-baja' }}">{{ h.criticidad }}/10</td>
-            <td>{{ h.impacto or '—' }}</td>
-            <td>{{ h.quick_win or '—' }}</td>
+            <th>Control</th>
+            <th>Estado</th>
+            <th>Crit.</th>
+            <th>Impacto de negocio</th>
+            <th>Quick win</th>
         </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for h in hallazgos %}
+
+        <tr>
+
+            <td>
+
+                <div class="control-code">
+                    {{ h.codigo }}
+                </div>
+
+                <div class="control-name">
+                    {{ h.nombre }}
+                </div>
+
+            </td>
+
+            <td>
+
+                <span class="status-badge">
+                    {{ h.estado }}
+                </span>
+
+            </td>
+
+            <td class="{{
+                'crit-alta' if h.criticidad >= 7
+                else 'crit-media' if h.criticidad >= 4
+                else 'crit-baja'
+            }}">
+
+                {{ h.criticidad }}/10
+
+            </td>
+
+            <td>
+                {{ h.impacto or '—' }}
+            </td>
+
+            <td>
+                {{ h.quick_win or '—' }}
+            </td>
+
+        </tr>
+
         {% endfor %}
+
     </tbody>
+
 </table>
+
+{% else %}
+
+<div class="empty-state">
+    No se han registrado hallazgos para este assessment.
+</div>
+
+{% endif %}
+
+
+<!-- ============================================================
+     ADDITIONAL FINDING DETAILS
+     ============================================================ -->
+
+{% if hallazgos %}
+
+<div class="section-header">
+
+    <div class="section-number">
+        02.1 · Finding Context
+    </div>
+
+    <h2 class="section-title">
+        Evidencias y esfuerzo estimado
+    </h2>
+
+</div>
+
+<table class="data-table">
+
+    <thead>
+
+        <tr>
+            <th>Control</th>
+            <th>Evidencia</th>
+            <th>Horas</th>
+            <th>Coste estimado</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for h in hallazgos %}
+
+        <tr>
+
+            <td>
+
+                <div class="control-code">
+                    {{ h.codigo }}
+                </div>
+
+                <div class="control-name">
+                    {{ h.nombre }}
+                </div>
+
+            </td>
+
+            <td>
+                {{ h.evidencia or '—' }}
+            </td>
+
+            <td>
+                {{ h.horas or '—' }}
+            </td>
+
+            <td>
+                {{ h.coste_estimado or '—' }}
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endif %}
+
+
+<!-- ============================================================
+     ROADMAP
+     ============================================================ -->
+
+<div class="section-header">
+
+    <div class="section-number">
+        03 · Remediation Strategy
+    </div>
+
+    <h2 class="section-title">
+        Roadmap de remediación
+    </h2>
+
+    <div class="section-description">
+        Priorización de acciones orientada a reducir el riesgo
+        de forma progresiva y medible.
+    </div>
+
+</div>
+
+<div class="roadmap-intro">
+
+    El roadmap prioriza las acciones en función de su impacto sobre
+    el riesgo, criticidad, esfuerzo estimado y capacidad de ejecución.
+
+</div>
 
 {% if roadmap %}
-<h2 class="section">Roadmap de remediación</h2>
-<table>
+
+<table class="data-table roadmap-table">
+
     <thead>
-        <tr><th>#</th><th>Fase</th><th>Acción</th><th>Horas est.</th><th>Coste est.</th></tr>
-    </thead>
-    <tbody>
-        {% for r in roadmap %}
+
         <tr>
-            <td>{{ r.prioridad }}</td>
-            <td>
-                <span class="fase-badge {{ 'fase-quick' if r.fase == 'Quick win' else 'fase-medio' if r.fase == 'Medio plazo' else 'fase-largo' }}">
-                    {{ r.fase }}
-                </span>
-            </td>
-            <td>{{ r.titulo }}</td>
-            <td>{{ r.horas or '—' }}</td>
-            <td>{{ r.coste_estimado or '—' }}</td>
+            <th>#</th>
+            <th>Fase</th>
+            <th>Acción</th>
+            <th>Horas est.</th>
+            <th>Coste est.</th>
         </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for r in roadmap %}
+
+        <tr>
+
+            <td>
+
+                <span class="priority-number">
+                    {{ r.prioridad }}
+                </span>
+
+            </td>
+
+            <td>
+
+                <span class="phase-badge {{
+                    'phase-quick' if r.fase == 'Quick win'
+                    else 'phase-medium' if r.fase == 'Medio plazo'
+                    else 'phase-long'
+                }}">
+
+                    {{ r.fase }}
+
+                </span>
+
+            </td>
+
+            <td>
+                {{ r.titulo }}
+            </td>
+
+            <td>
+                {{ r.horas or '—' }}
+            </td>
+
+            <td>
+                {{ r.coste_estimado or '—' }}
+            </td>
+
+        </tr>
+
         {% endfor %}
+
     </tbody>
+
 </table>
+
+{% else %}
+
+<div class="empty-state">
+    No se han generado acciones de remediación para este assessment.
+</div>
+
 {% endif %}
 
-<div class="footer-note">
-    Informe generado por Sentra OS — OT Assessment Engine. El score y la priorización del roadmap
-    son reproducibles a partir de los objetos de conocimiento registrados por control.
+
+<!-- ============================================================
+     FINAL NOTE
+     ============================================================ -->
+
+<div class="final-note">
+
+    <strong>Sentra OT · Sentra OS</strong><br>
+
+    Informe generado por Sentra OS — OT Assessment Engine.
+
+    El score y la priorización del roadmap son reproducibles
+    a partir de los objetos de conocimiento registrados por control.
+
 </div>
+
 
 </body>
 </html>

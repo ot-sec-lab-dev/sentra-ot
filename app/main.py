@@ -1,6 +1,6 @@
 """
-Sentra OS — OT Assessment Engine
-==================================
+SentraOT — OT Assessment Engine
+================================
 API FastAPI que orquesta los motores del Assessment Engine:
 
   Cliente → Assessment → Risk Engine → AI Report Builder →
@@ -30,7 +30,7 @@ from modules import (
     ai_engine,
 )
 
-app = FastAPI(title="Sentra OS — OT Assessment Engine")
+app = FastAPI(title="SentraOT — OT Assessment Engine")
 
 
 @app.on_event("startup")
@@ -41,6 +41,7 @@ def startup():
 # ---------------------------------------------------------------
 # Cliente / Assessment
 # ---------------------------------------------------------------
+
 class ClienteIn(BaseModel):
     nombre: str
     sector: str | None = None
@@ -56,9 +57,16 @@ class AssessmentIn(BaseModel):
 def crear_cliente(cliente: ClienteIn):
     with engine.begin() as conn:
         cid = conn.execute(
-            text("INSERT INTO clients (nombre, sector) VALUES (:n, :s) RETURNING id"),
-            {"n": cliente.nombre, "s": cliente.sector},
+            text(
+                "INSERT INTO clients (nombre, sector) "
+                "VALUES (:n, :s) RETURNING id"
+            ),
+            {
+                "n": cliente.nombre,
+                "s": cliente.sector,
+            },
         ).scalar()
+
     return {"client_id": cid}
 
 
@@ -70,8 +78,13 @@ def crear_assessment(assessment: AssessmentIn):
                 """INSERT INTO assessments (client_id, nombre, alcance)
                    VALUES (:cid, :n, :a) RETURNING id"""
             ),
-            {"cid": assessment.client_id, "n": assessment.nombre, "a": assessment.alcance},
+            {
+                "cid": assessment.client_id,
+                "n": assessment.nombre,
+                "a": assessment.alcance,
+            },
         ).scalar()
+
     return {"assessment_id": aid}
 
 
@@ -83,6 +96,7 @@ def catalogo_controles(framework: str | None = None):
 # ---------------------------------------------------------------
 # Asset Discovery
 # ---------------------------------------------------------------
+
 class ActivosIn(BaseModel):
     activos: list[dict]
 
@@ -97,162 +111,189 @@ class BaselineIn(BaseModel):
 class BaselinesIn(BaseModel):
     baselines: list[BaselineIn]
 
+
 @app.post("/assessments/{assessment_id}/assets")
-def cargar_activos(assessment_id: int, body: ActivosIn):
-    ids = asset_discovery.registrar_activos(assessment_id, body.activos)
-    return {"registrados": ids}
+def descubrir_activos(
+    assessment_id: int,
+    data: ActivosIn,
+):
+    return asset_discovery.registrar_activos(
+        assessment_id,
+        data.activos,
+    )
 
 
 # ---------------------------------------------------------------
-# Interview Engine / Questionnaire (entrada de conocimiento)
+# Interview Engine
 # ---------------------------------------------------------------
+
 class HallazgoIn(BaseModel):
     framework: str
     codigo: str
     estado: str
     criticidad: int
-    evidencia: str = ""
-    impacto: str = ""
-    quick_win: str = ""
-    coste_estimado: str = ""
+    evidencia: str | None = None
+    impacto: str | None = None
+    quick_win: str | None = None
+    coste_estimado: str | None = None
     horas: int | None = None
     asset_id: int | None = None
 
 
 @app.post("/assessments/{assessment_id}/interview")
-def registrar_entrevista(assessment_id: int, hallazgo: HallazgoIn):
+def registrar_entrevista(
+    assessment_id: int,
+    hallazgo: HallazgoIn,
+):
     try:
-        eval_id = interview_engine.registrar_respuesta_entrevista(assessment_id, hallazgo.dict())
+        return interview_engine.registrar_respuesta_entrevista(
+            assessment_id,
+            hallazgo.model_dump(),
+        )
     except ValueError as e:
-        raise HTTPException(400, str(e))
-    return {"control_evaluation_id": eval_id}
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
+
+# ---------------------------------------------------------------
+# Questionnaire Engine
+# ---------------------------------------------------------------
 
 class CuestionarioIn(BaseModel):
-    respuestas: list[HallazgoIn]
+    respuestas: list[dict]
 
 
 @app.post("/assessments/{assessment_id}/questionnaire")
-def registrar_cuestionario(assessment_id: int, body: CuestionarioIn):
+def registrar_cuestionario(
+    assessment_id: int,
+    cuestionario: CuestionarioIn,
+):
     return questionnaire.registrar_cuestionario(
-        assessment_id, [r.dict() for r in body.respuestas]
+        assessment_id,
+        cuestionario.respuestas,
     )
 
+
+# ---------------------------------------------------------------
+# Asset Baselines
+# ---------------------------------------------------------------
+
 @app.post("/assets/{asset_id}/baselines")
-def registrar_baseline(asset_id: int, body: BaselinesIn):
+def registrar_baselines(
+    asset_id: int,
+    data: BaselinesIn,
+):
+    return asset_baseline_engine.registrar_baselines(
+        asset_id,
+        data.baselines,
+    )
 
-    ids = []
-
-    for baseline in body.baselines:
-        ids.append(
-            asset_baseline_engine.registrar_baseline(
-                asset_id,
-                baseline.model_dump()
-            )
-        )
-
-    return {"registrados": ids}
 
 @app.get("/assets/{asset_id}/baselines")
 def obtener_baselines(asset_id: int):
+    return asset_baseline_engine.obtener_baselines(asset_id)
 
-    return {
-        "baselines": asset_baseline_engine.obtener_baselines(asset_id)
-    }
 
 # ---------------------------------------------------------------
 # Risk Engine
 # ---------------------------------------------------------------
+
 @app.post("/assessments/{assessment_id}/risk-score")
 def calcular_riesgo(assessment_id: int):
     try:
         return risk_engine.calcular_riesgo(assessment_id)
     except ValueError as e:
-        raise HTTPException(400, str(e))
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
 
 # ---------------------------------------------------------------
 # Roadmap Generator
 # ---------------------------------------------------------------
+
 @app.post("/assessments/{assessment_id}/roadmap")
 def generar_roadmap(assessment_id: int):
-    return {"roadmap": roadmap_engine.generar_roadmap(assessment_id)}
+    return {
+        "roadmap": roadmap_engine.generar_roadmap(assessment_id)
+    }
 
 
 # ---------------------------------------------------------------
 # Asset Risk Engine
 # ---------------------------------------------------------------
+
 @app.post("/assessments/{assessment_id}/asset-risk")
 def calcular_riesgo_activos(assessment_id: int):
     return {
-        "assets": asset_risk_engine.calcular_riesgo_activos(assessment_id)
+        "assets": asset_risk_engine.calcular_riesgo_activos(
+            assessment_id
+        )
     }
 
 
 @app.get("/assessments/{assessment_id}/assets/dashboard")
 def dashboard_activos(assessment_id: int):
-
     return {
-        "assets": asset_dashboard.obtener_dashboard_activos(assessment_id)
+        "assets": asset_dashboard.obtener_dashboard_activos(
+            assessment_id
+        )
     }
 
-    
-# ---------------------------------------------------------------
-# AI Report Builder (AI Engine + Report Engine + PDF Builder)
-# ---------------------------------------------------------------
-@app.post("/assessments/{assessment_id}/report")
-def generar_informe(assessment_id: int, usar_ia: bool = True, formato: str = "html"):
-    resumen = ""
-    if usar_ia:
-        with engine.begin() as conn:
-            cliente_row = conn.execute(
-                text(
-                    """SELECT cl.nombre FROM assessments a
-                       JOIN clients cl ON a.client_id = cl.id WHERE a.id = :aid"""
-                ),
-                {"aid": assessment_id},
-            ).fetchone()
-            score_row = conn.execute(
-                text(
-                    """SELECT score, nivel FROM risk_scores
-                       WHERE assessment_id = :aid ORDER BY calculated_at DESC LIMIT 1"""
-                ),
-                {"aid": assessment_id},
-            ).fetchone()
-            hallazgos_rows = conn.execute(
-                text(
-                    """SELECT c.codigo, c.nombre, ce.estado, ce.criticidad, ce.impacto
-                       FROM control_evaluations ce JOIN controls c ON ce.control_id = c.id
-                       WHERE ce.assessment_id = :aid"""
-                ),
-                {"aid": assessment_id},
-            ).fetchall()
 
-        if cliente_row and score_row:
-            hallazgos = [
-                {"codigo": h[0], "nombre": h[1], "estado": h[2], "criticidad": h[3], "impacto": h[4]}
-                for h in hallazgos_rows
-            ]
+# ---------------------------------------------------------------
+# AI Report Builder
+# ---------------------------------------------------------------
+
+@app.post("/assessments/{assessment_id}/report")
+def generar_informe(
+    assessment_id: int,
+    usar_ia: bool = True,
+    formato: str = "html",
+):
+    resumen = ""
+
+    if usar_ia:
+        try:
             resumen = ai_engine.generar_resumen_ejecutivo(
-                cliente_row[0], score_row[0], score_row[1], hallazgos
+                assessment_id
             )
+        except Exception:
+            resumen = ""
 
     try:
-        return report_engine.generar_informe(assessment_id, resumen_ejecutivo=resumen, formato=formato)
+        resultado = report_engine.generar_informe(
+            assessment_id,
+            resumen_ejecutivo=resumen,
+            formato=formato,
+        )
+
+        return resultado
+
     except ValueError as e:
-        raise HTTPException(400, str(e))
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
 
 # ---------------------------------------------------------------
 # Executive Dashboard
 # ---------------------------------------------------------------
+
 @app.get("/assessments/{assessment_id}/dashboard")
 def dashboard_ejecutivo(assessment_id: int):
     with engine.begin() as conn:
         score_row = conn.execute(
             text(
-                """SELECT score, nivel, desglose, calculated_at FROM risk_scores
-                   WHERE assessment_id = :aid ORDER BY calculated_at DESC LIMIT 1"""
+                """SELECT score, nivel, desglose, calculated_at
+                   FROM risk_scores
+                   WHERE assessment_id = :aid
+                   ORDER BY calculated_at DESC
+                   LIMIT 1"""
             ),
             {"aid": assessment_id},
         ).fetchone()
@@ -260,30 +301,33 @@ def dashboard_ejecutivo(assessment_id: int):
         top_riesgos = conn.execute(
             text(
                 """SELECT c.codigo, c.nombre, ce.criticidad, ce.estado
-                   FROM control_evaluations ce JOIN controls c ON ce.control_id = c.id
-                   WHERE ce.assessment_id = :aid AND ce.estado != 'Implantado'
-                   ORDER BY ce.criticidad DESC LIMIT 5"""
+                   FROM control_evaluations ce
+                   JOIN controls c ON ce.control_id = c.id
+                   WHERE ce.assessment_id = :aid
+                     AND ce.estado != 'Implantado'
+                   ORDER BY ce.criticidad DESC
+                   LIMIT 5"""
             ),
             {"aid": assessment_id},
         ).fetchall()
 
         roadmap_resumen = conn.execute(
             text(
-                """SELECT fase, COUNT(*), SUM(horas) FROM roadmap_items
-                   WHERE assessment_id = :aid GROUP BY fase"""
+                """SELECT fase, COUNT(*), SUM(horas)
+                   FROM roadmap_items
+                   WHERE assessment_id = :aid
+                   GROUP BY fase"""
             ),
             {"aid": assessment_id},
         ).fetchall()
 
     return {
         "assessment_id": assessment_id,
-
         "riesgo_global": {
             "score": score_row[0] if score_row else None,
             "nivel": score_row[1] if score_row else None,
             "frameworks": score_row[2] if score_row else {},
         },
-
         "indicadores": {
             "hallazgos_criticos": len(
                 [r for r in top_riesgos if r[2] >= 8]
@@ -291,7 +335,6 @@ def dashboard_ejecutivo(assessment_id: int):
             "hallazgos_totales": len(top_riesgos),
             "fases_roadmap": len(roadmap_resumen),
         },
-
         "top_riesgos": [
             {
                 "codigo": r[0],
@@ -301,7 +344,6 @@ def dashboard_ejecutivo(assessment_id: int):
             }
             for r in top_riesgos
         ],
-
         "roadmap": [
             {
                 "fase": r[0],
@@ -311,6 +353,8 @@ def dashboard_ejecutivo(assessment_id: int):
             for r in roadmap_resumen
         ],
     }
+
+
 # ---------------------------------------------------------------
 # Arranque del servidor
 # ---------------------------------------------------------------

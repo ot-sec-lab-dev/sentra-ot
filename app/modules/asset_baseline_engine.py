@@ -38,6 +38,30 @@ def registrar_baseline(asset_id: int, baseline: dict):
     return baseline_id
 
 
+def registrar_baselines(asset_id: int, baselines: list[dict]) -> list[int]:
+    """
+    Registra un lote de baselines para un activo.
+
+    Admite diccionarios y modelos Pydantic compatibles con BaselineIn.
+    """
+
+    ids = []
+
+    for baseline in baselines:
+
+        if hasattr(baseline, "model_dump"):
+            baseline = baseline.model_dump()
+
+        ids.append(
+            registrar_baseline(
+                asset_id,
+                baseline,
+            )
+        )
+
+    return ids
+
+
 def obtener_baselines(asset_id: int):
 
     with engine.begin() as conn:
