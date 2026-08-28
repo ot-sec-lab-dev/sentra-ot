@@ -1,14 +1,26 @@
-﻿# Entregables cliente - NO subir
-output/*.pdf
-output/*.html
+﻿# Entregables cliente
+output/
 *.pdf
 !docs/*.pdf
+
+# Backups locales - NUNCA subir
+*backup*
+*.bak
+*.bak_*
+*_test.json
+*_final.py
+*_v2.html
+Main-Final.py
+fix_horas.py
+openapi.json
+report_test_before_layout.html
+sentra_os_informe_*.html
 
 # Python
 __pycache__/
 *.pyc
 .venv/
-.pytest_cache/
 
-# Env
+# Secrets
 .env
+app/seed_real.py
