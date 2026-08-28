@@ -1,79 +1,37 @@
-version: "3.8"
+version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16
+  sentra_db:
+    image: postgres:15
     container_name: sentra_db
-    restart: unless-stopped
     environment:
-      POSTGRES_USER: sentra
-      POSTGRES_PASSWORD: sentra_pass
       POSTGRES_DB: sentra_os
+      POSTGRES_USER: sentra
+      POSTGRES_PASSWORD: sentra123
     ports:
       - "5432:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sentra"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  api:
-    build: ./app
-    container_name: sentra_assessment_engine
+      - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
-    environment:
-      DATABASE_URL: postgresql://sentra:sentra_pass@postgres:5432/sentra_os
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      SEED_DIR: /app/seed
-      OUTPUT_DIR: /app/output
-    depends_on:
-      postgres:
-        condition: service_healthy
+
+  sentra_assessment_engine:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: sentra_assessment_engine
     ports:
       - "8000:8000"
-    volumes:
-      - ./templates:/app/templates
-      - ./seed:/app/seed
-      - reports_output:/app/output
-      - ./docs/images:/app/docs/images:ro
-
-  n8n:
-    image: n8nio/n8n:latest
-    container_name: sentra_n8n
-    restart: unless-stopped
     environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=change_me
-      - GENERIC_TIMEZONE=Europe/Madrid
-    ports:
-      - "5678:5678"
+      DATABASE_URL: postgresql://sentra:sentra123@sentra_db:5432/sentra_os
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    depends_on:
+      - sentra_db
     volumes:
-      - n8n_data:/home/node/.n8n
-    depends_on:
-      - api
-
-  metabase:
-    image: metabase/metabase:latest
-    container_name: sentra_dashboard
+      - ./app:/app
+      - ./output:/app/output
+      - ./app/templates:/app/templates
+      - ./app/seed:/app/seed
     restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      MB_DB_TYPE: postgres
-      MB_DB_DBNAME: sentra_os
-      MB_DB_PORT: 5432
-      MB_DB_USER: sentra
-      MB_DB_PASS: sentra_pass
-      MB_DB_HOST: postgres
-    depends_on:
-      postgres:
-        condition: service_healthy
 
 volumes:
-  pg_data:
-  n8n_data:
-  reports_output:
+  pgdata:
