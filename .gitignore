@@ -24,3 +24,6 @@ __pycache__/
 # Secrets
 .env
 app/seed_real.py
+
+.env
+app/.env

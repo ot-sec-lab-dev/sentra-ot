@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sentra OT - Login</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Inter,system-ui;background:#0a1931;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:#fff;border-radius:16px;padding:32px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:24px}.logo-icon{width:42px;height:42px;background:#0a1931;color:#fff;border-radius:10px;display:grid;place-items:center;font-weight:900;font-size:20px}
+h1{font-size:20px;color:#0a1931;font-weight:800} .sub{color:#64748b;font-size:13px;margin-top:4px}
+label{display:block;font-size:12px;font-weight:700;color:#334155;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+input{width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;transition:.2s}input:focus{border-color:#00d4c8;box-shadow:0 0 0 3px rgba(0,212,200,.15)}
+button{width:100%;margin-top:20px;background:#0a1931;color:#fff;border:none;padding:13px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;transition:.2s}button:hover{background:#132f5e;transform:translateY(-1px)}
+.error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;padding:10px 12px;border-radius:8px;font-size:13px;margin-top:14px}
+.footer{text-align:center;margin-top:18px;font-size:11px;color:#94a3b8}
+</style></head><body>
+<div class="card">
+<div class="logo"><div class="logo-icon">S</div><div><h1>SENTRA OT</h1><div class="sub">OT Cybersecurity Assessment • Confidencial</div></div></div>
+<form method="post" action="/login">
+<label>Usuario</label><input name="username" placeholder="admin" required value="admin">
+<label>Contraseña</label><input name="password" type="password" placeholder="••••••••" required>
+<button type="submit">Entrar al Dashboard →</button>
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+</form>
+<div class="footer">Sentra OS v2.0 • Planta Piloto Coria • {{ now }}</div>
+</div>
+</body></html>
