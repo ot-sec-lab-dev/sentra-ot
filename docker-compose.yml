@@ -1,6 +1,4 @@
-version: '3.8'
-
-services:
+﻿services:
   sentra_db:
     image: postgres:15
     container_name: sentra_db
@@ -24,14 +22,33 @@ services:
     environment:
       DATABASE_URL: postgresql://sentra:sentra123@sentra_db:5432/sentra_os
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OUTPUT_DIR: /app/output
+      SECRET_KEY: 7b82a23015c09bd912b73a173ea89823f9bde18d7487afa114e2b7753b216f7f
+      ADMIN_USER: admin
+      ADMIN_PASS: U90tJLvcbzj0jNt5njNAug
     depends_on:
       - sentra_db
     volumes:
       - ./app:/app
       - ./output:/app/output
-      - ./app/templates:/app/templates
-      - ./app/seed:/app/seed
+    restart: unless-stopped
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=false
+      - WEBHOOK_URL=http://localhost:5678
+      - GENERIC_TIMEZONE=Europe/Madrid
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - sentra_db
+      - sentra_assessment_engine
     restart: unless-stopped
 
 volumes:
   pgdata:
+  n8n_data:
