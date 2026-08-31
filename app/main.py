@@ -5,6 +5,7 @@ API FastAPI que orquesta los motores del Assessment Engine:
   Executive Dashboard → Roadmap Generator
 
 v2.1: Añadido Auth admin/sentra2024 + login.html + dashboard protegido
+FIX v2.1.1: Logo webp 9.7KB + mounts únicos sin duplicar + sin carga infinita
 """
 
 from fastapi import FastAPI, HTTPException, Request, Form, Depends
@@ -46,28 +47,28 @@ def require_login(request: Request):
 def check_login(request: Request):
     return request.session.get("user")
 
-# Montar static para logo optimizado (9KB en vez de 1.3MB embebido)
-if os.path.exists("static"):
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-if os.path.exists("/app/static"):
-    try:
-        app.mount("/static", StaticFiles(directory="/app/static"), name="static")
-    except:
-        pass
+# ---------- FIX v2.1.1: STATIC Y OUTPUT ÚNICOS (ANTES DUPLICADO 5 VECES) ----------
+STATIC_DIR = None
+for cand in ["static", "/app/static", "app/static"]:
+    if os.path.isdir(cand):
+        STATIC_DIR = cand
+        break
 
-# Montar output para servir informes HTML/PDF generados
-if os.path.exists("output"):
-    app.mount("/output", StaticFiles(directory="output"), name="output")
-if os.path.exists("/app/output"):
-    try:
-        app.mount("/output", StaticFiles(directory="/app/output"), name="output")
-    except:
-        pass
-if os.path.exists("app/output"):
-    try:
-        app.mount("/output", StaticFiles(directory="app/output"), name="output")
-    except:
-        pass
+if STATIC_DIR:
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    print(f"[FIX] Static montado desde: {STATIC_DIR}")
+else:
+    print("[FIX] WARNING: No existe carpeta static - crea static/logo_512.webp")
+
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "output")
+for cand in [OUTPUT_DIR, "/app/output", "app/output", "output"]:
+    if os.path.isdir(cand):
+        OUTPUT_DIR = cand
+        break
+
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+app.mount("/output", StaticFiles(directory=OUTPUT_DIR), name="output")
+print(f"[FIX] Output montado desde: {OUTPUT_DIR}")
 
 
 # Jinja env
@@ -395,7 +396,7 @@ def dashboard_ejecutivo(assessment_id: int, request: Request):
 
 
 # ---------------------------------------------------------------
-# Executive Dashboard VIEW (HTML Visual - RECUPERADO PRO v2 + AUTH)
+# Executive Dashboard VIEW (HTML Visual - RECUPERADO PRO v2 + AUTH + FIX LOGO)
 # ---------------------------------------------------------------
 
 @app.get("/", response_class=HTMLResponse)
@@ -460,11 +461,11 @@ def dashboard_view(request: Request):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sentra OT - Executive Dashboard PRO v2.1 AUTH</title>
+<title>Sentra OT - Executive Dashboard PRO v2.1 AUTH FIXED</title>
 <style>
 *{{box-sizing:border-box}} body{{margin:0;font-family:Inter,Helvetica,Arial,sans-serif;background:#f6f8fa;color:#1a2332}}
 .header{{background:#0a1931;color:white;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:4px solid #00d4c8}}
-.header img{{height:42px}} .header h1{{margin:0;font-size:18px;letter-spacing:1px}}
+.header img{{height:42px;width:auto;display:block}} .header h1{{margin:0;font-size:18px;letter-spacing:1px}}
 .container{{max-width:1200px;margin:32px auto;padding:0 24px}}
 .card{{background:white;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);padding:24px;margin-bottom:24px;border:1px solid #e1e8ed}}
 .table{{width:100%;border-collapse:collapse}} .table th{{text-align:left;padding:12px 8px;border-bottom:2px solid #0a1931;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#5a6c7d}} .table td{{padding:14px 8px;border-bottom:1px solid #eef2f7;font-size:13px}}
@@ -479,8 +480,9 @@ def dashboard_view(request: Request):
 <body>
 <div class="header">
   <div style="display:flex;align-items:center;gap:16px">
-    <img src="/static/logo.png" onerror="this.style.display='none'" alt="Sentra OT">
-    <h1>SENTRA OT — EXECUTIVE DASHBOARD PRO v2.1 AUTH</h1>
+    <!-- FIX v2.1.1: webp 9.7KB con fallback, nunca display:none -->
+    <img src="/static/logo_512.webp" onerror="this.onerror=null; this.src='/static/logo.png'; this.onerror=function(){{this.src='/static/logo_512.png';}}" alt="Sentra OT">
+    <h1>SENTRA OT — EXECUTIVE DASHBOARD PRO v2.1 AUTH FIXED</h1>
   </div>
   <div style="display:flex;align-items:center;gap:16px">
     <span style="font-size:11px;opacity:0.8">admin</span>
@@ -491,7 +493,7 @@ def dashboard_view(request: Request):
 <div class="container">
   <div class="card">
     <h2 style="margin:0 0 8px 0;color:#0a1931">Assessments</h2>
-    <p style="margin:0 0 20px 0;color:#5a6c7d;font-size:13px">Selecciona un assessment y genera el informe PRO vendible. Protegido con Auth.</p>
+    <p style="margin:0 0 20px 0;color:#5a6c7d;font-size:13px">Selecciona un assessment y genera el informe PRO vendible. Protegido con Auth. FIX logo + sin carga infinita.</p>
     <table class="table">
       <thead><tr><th>ID</th><th>Cliente</th><th>Assessment</th><th>Score</th><th>Acciones</th></tr></thead>
       <tbody>{rows_html or '<tr><td colspan=5 style="text-align:center;color:#89939b;padding:32px">No hay assessments. Crea uno en POST /assessments</td></tr>'}</tbody>
@@ -502,11 +504,11 @@ def dashboard_view(request: Request):
   <div class="card">
     <h3 style="margin:0 0 12px 0">Último informe bueno (ID 7)</h3>
     <code>/app/output/sentra_os_informe_1_20260828161713.html (156KB PRO)</code>
-    <p style="font-size:12px;color:#5a6c7d">Ahora con Auth activo: admin / sentra2024</p>
+    <p style="font-size:12px;color:#5a6c7d">Ahora con Auth activo: admin / sentra2024 - FIX aplicado</p>
   </div>
 </div>
 
-<div class="footer">SENTRA OT · CONFIDENTIAL — PRO v2.1 AUTH · admin / sentra2024</div>
+<div class="footer">SENTRA OT · CONFIDENTIAL — PRO v2.1 AUTH FIXED · admin / sentra2024</div>
 
 <script>
 function showStatus(msg, isError=false){{
@@ -520,7 +522,9 @@ async function generarInforme(id, formato){{
     const res=await fetch(`/assessments/${{id}}/report?usar_ia=true&formato=${{formato}}`,{{method:'POST'}});
     const data=await res.json();
     if(res.ok){{
-      showStatus(`✅ Generado: <strong>${{data.path}}</strong> · Score: ${{data.score}} (${{data.score_100}}%) · <a href="/output/${{data.path.split('/').pop()}}" target="_blank">Abrir</a>`);
+      const fname = data.path.split('/').pop();
+      showStatus(`✅ Generado: <strong>${{fname}}</strong> · Score: ${{data.score}} (${{data.score_100}}%) · <a href="/output/${{fname}}" target="_blank">Abrir</a>`);
+      setTimeout(()=>{{ window.open('/output/'+fname,'_blank'); }}, 400);
     }} else {{
       showStatus(`❌ Error: ${{data.detail || JSON.stringify(data)}}`, true);
     }}
