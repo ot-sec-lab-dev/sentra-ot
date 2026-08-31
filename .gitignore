@@ -1,6 +1,7 @@
-﻿# Entregables cliente
+﻿# Entregables cliente - pero permitir demo Pages
 output/
 *.pdf
+!docs/**/*.pdf
 !docs/*.pdf
 
 # Backups locales - NUNCA subir
@@ -20,10 +21,9 @@ sentra_os_informe_*.html
 __pycache__/
 *.pyc
 .venv/
+venv/
 
 # Secrets
 .env
 app/seed_real.py
-
-.env
 app/.env
